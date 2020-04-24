@@ -1,0 +1,99 @@
+-- Hadiza Mamman
+
+--Run these queries as user UV
+
+-- Q1.
+-- Find the ids and names of all the instructors from Biology department. Print the heading BIOLOGY_INSTRUCTORS for the query result. Separate the ids and names using a space.
+
+SELECT id || ' ' || name  biology_instructors
+FROM   instructor
+WHERE  dept_name = 'Biology';
+
+-- Q2.
+-- Find the titles of 3-credit courses in Computer Science Department. Print the heading 3-Credit CS Courses for the query result.
+
+SELECT title "3-Credit CS Courses"
+FROM   course
+WHERE dept_name = 'Comp. Sci.' AND credits = 3;
+
+-- Q3.
+-- For the student with ID 12345 (or any other value), show the course ids and course titles of all courses registered for by this student.
+
+SELECT  c.course_id, title
+FROM    takes t JOIN course c ON (t.course_id = c.course_id) 
+WHERE   id = '12345';
+
+-- Q4.
+-- As above in Q3, but show the total number of credits for such courses taken by that student. Don't display the tot_creds value from the student table, you should use SQL aggregation on courses taken by the student.
+
+SELECT  SUM(credits) total_credits
+FROM    takes t JOIN course c ON (t.course_id = c.course_id) 
+WHERE   id = '12345';
+
+-- Q5
+-- As above in Q4, but display the total credits for each of the students, along with the ID of the student. Don't bother about the name of the student. Don't bother about students who have not registered for any course, they can be omitted.
+
+SELECT  id, SUM(credits) total_credits
+FROM    takes t JOIN course c ON (t.course_id = c.course_id) 
+GROUP BY id;
+
+-- Q6
+-- Find the names of all students who have taken any Comp. Sci. course ever. There should be no duplicate names.
+
+SELECT DISTINCT s.name
+FROM   takes t JOIN student s ON (t.id = s.id)
+	    JOIN course c ON (t.course_id = c.course_id)
+WHERE  c.dept_name = 'Comp. Sci.';
+
+SELECT DISTINCT s.name, s.dept_name
+FROM   takes t JOIN student s ON (t.id = s.id)
+	    JOIN course c ON (t.course_id = c.course_id)
+WHERE  c.dept_name = 'Comp. Sci.';
+
+-- Q7
+-- Display the IDs, names of all instructors in Physics Department, and the course ids of courses taught by them. The result must also include instructors who haven’t taught any course.
+
+SELECT i.id, name, course_id
+FROM instructor i LEFT JOIN teaches t 
+       ON (i.id = t.id)
+WHERE dept_name = 'Physics';
+
+-- Q8
+-- Display the IDs and names of all instructors who have never taught any course. (Interpret "taught" as "taught or is scheduled to teach").
+-- a. Do this using an OUTER JOIN
+-- b. Do this using a SQL set operator
+
+-- Q8a
+SELECT i.id, name
+FROM instructor i LEFT JOIN teaches t 
+       ON (i.id = t.id)
+WHERE t.course_id IS NULL;
+ 
+-- Q8b
+  (SELECT id, name
+   FROM  instructor)
+MINUS
+  (SELECT i.id, i.name  
+   FROM teaches t JOIN instructor i
+       ON (t.id = i.id)
+  );
+ 
+-- Q9
+-- For each instructor who taught or is scheduled to teach at least one course, print the name of the instructor and how many courses this instructor taught or is scheduled to teach. Sort the result in the increasing order of instructor names.
+
+SELECT name, COUNT(*) how_many_courses
+FROM instructor i JOIN teaches t
+       ON (i.id = t.id)
+GROUP BY name
+ORDER BY name;
+
+
+--Run this query as user ap
+
+-- Q10
+-- Display the account numbers and account descriptions of general ledger accounts that were used in any invoice and have account descriptions ending with Advertising. Sort the result in the increasing order of account numbers
+SELECT DISTINCT gl.account_number, account_description 
+FROM  general_ledger_accounts gl JOIN invoice_line_items il 
+       ON (gl.account_number = il.account_number)
+WHERE account_description LIKE '%Advertising'
+ORDER BY gl.account_number;
